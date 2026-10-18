@@ -1,0 +1,45 @@
+#target photoshop
+/*
+<javascriptresource>
+<name>Grid Banner Export</name>
+<category>shutterview</category>
+<about>Grid banner for Instagram \u2013 @shutterview.aviation</about>
+</javascriptresource>
+*/
+// Grid Banner Export \u2013 idea by @shutterview.aviation, built with Claude
+// Splits the active image into 3 Instagram posts (4:5, 1080x1350) that look seamless in the
+// profile grid. The grid only shows the centre 3:4 of each post, so neighbouring posts overlap
+// by 67.5 px in the source image \u2013 the hidden edges continue the picture when a post is opened.
+(function () {
+    if (app.documents.length === 0) { alert('Please open your banner image first.'); return; }
+    var T = 1080, H = 1350, V = H * 3 / 4;                // V = visible width of one post in the grid (1012.5)
+    var TOTAL = Math.round(3 * V + (T - V));               // 3105 x 1350 source area
+    var oldUnits = app.preferences.rulerUnits; app.preferences.rulerUnits = Units.PIXELS;
+    var out = Folder.selectDialog('Choose a folder for the 3 banner posts');
+    if (!out) { app.preferences.rulerUnits = oldUnits; return; }
+    var src = app.activeDocument, d = src.duplicate('grid-banner', true);
+    app.activeDocument = d;
+    try { d.flatten(); } catch (e) {}
+    if (d.mode !== DocumentMode.RGB) d.changeMode(ChangeMode.RGB);
+    try { d.convertProfile('sRGB IEC61966-2.1', Intent.RELATIVECOLORIMETRIC, true, true); } catch (e) {}
+    if (d.bitsPerChannel !== BitsPerChannelType.EIGHT) d.bitsPerChannel = BitsPerChannelType.EIGHT;
+    var w = d.width.as('px'), h = d.height.as('px'), s = Math.max(TOTAL / w, H / h);   // fill, centred
+    d.resizeImage(UnitValue(Math.round(w * s), 'px'), UnitValue(Math.round(h * s), 'px'), 72, ResampleMethod.BICUBIC);
+    w = d.width.as('px'); h = d.height.as('px');
+    var ox = Math.round((w - TOTAL) / 2), oy = Math.round((h - H) / 2);
+    d.crop([ox, oy, ox + TOTAL, oy + H]);
+    var names = ['post-3_left.jpg', 'post-2_middle.jpg', 'post-1_right.jpg'];
+    for (var i = 0; i < 3; i++) {
+        var x0 = Math.round(i * V), t = d.duplicate('tile', true);
+        app.activeDocument = t;
+        t.crop([x0, 0, x0 + T, H]);
+        var o = new JPEGSaveOptions(); o.quality = 12; o.embedColorProfile = true;
+        o.formatOptions = FormatOptions.STANDARDBASELINE; o.matte = MatteType.NONE;
+        t.saveAs(new File(out.fsName + '/' + names[i]), o, true, Extension.LOWERCASE);
+        t.close(SaveOptions.DONOTSAVECHANGES);
+    }
+    d.close(SaveOptions.DONOTSAVECHANGES);
+    app.activeDocument = src;
+    app.preferences.rulerUnits = oldUnits;
+    alert('Done!\n\nPost in this order:\n1. post-1_right\n2. post-2_middle\n3. post-3_left\n\nTip: pin all three posts so the banner stays on top.');
+})();
