@@ -1,8 +1,0 @@
-Grid Banner Export – idea & workflow by shutterview (github.com/shutterview), built with Claude.
-
-Licensed under Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
-https://creativecommons.org/licenses/by-nc/4.0/
-
-You may use, share and adapt this script for personal, non-commercial purposes,
-as long as you credit shutterview (github.com/shutterview). Provided "as is", without warranty of any kind.
-Adobe Photoshop is not included.
